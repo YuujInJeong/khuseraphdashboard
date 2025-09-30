@@ -265,6 +265,7 @@ The extension stores settings in your workspace configuration:
   "seraph.selectedGPU": "aurora-g1"
 }
 ```
+<img width="1421" height="1068" alt="스크린샷 2025-09-30 오전 10 02 12" src="https://github.com/user-attachments/assets/76c640b8-8245-4fd2-992b-83f0a8cfcc99" />
 
 ## GPU Dashboard Features
 
@@ -275,6 +276,8 @@ The extension stores settings in your workspace configuration:
 - **Resource Metrics**: CPU and memory usage bars
 - **Node Selection**: Click cards to select nodes for job submission
 - **Real-time Updates**: Manual refresh or auto-refresh every 30 seconds
+
+<img width="1421" height="1068" alt="스크린샷 2025-09-30 오전 10 02 04" src="https://github.com/user-attachments/assets/a6bd6e14-8ca3-4af1-b8ad-727cc5c5a1c2" />
 
 ## Job Management Features
 
