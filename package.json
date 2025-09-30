@@ -1,0 +1,222 @@
+{
+  "name": "khu-seraph-dashboard",
+  "displayName": "KHU Seraph Dashboard",
+  "description": "VSCode Extension for managing KHU Seraph GPU server - Easy GUI for beginners to manage GPU jobs, file sync, and monitoring",
+  "version": "1.0.0",
+  "author": "YuujInJeong",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YuujInJeong/khuseraphdashboard.git"
+  },
+  "homepage": "https://github.com/YuujInJeong/khuseraphdashboard#readme",
+  "bugs": {
+    "url": "https://github.com/YuujInJeong/khuseraphdashboard/issues"
+  },
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "gpu",
+    "server",
+    "ssh",
+    "slurm",
+    "cluster"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "seraph.configureConnection",
+        "title": "Configure Connection",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.toggleConnection",
+        "title": "Toggle Connection",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.showDashboard",
+        "title": "Open Dashboard",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.showGPUDashboard",
+        "title": "Show GPU Dashboard",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.submitJob",
+        "title": "Submit Job",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.refreshJobs",
+        "title": "Refresh Jobs",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.viewJobLog",
+        "title": "View Log",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.cancelJob",
+        "title": "Cancel Job",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.copyJobId",
+        "title": "Copy Job ID",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.showSyncMenu",
+        "title": "Sync Files",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.syncLocalToRemote",
+        "title": "Sync Local → Remote",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.syncRemoteToLocal",
+        "title": "Sync Remote → Local", 
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.syncBothWays",
+        "title": "Sync Both Ways",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.manageDatasets",
+        "title": "Manage Datasets",
+        "category": "Seraph"
+      }
+    ],
+    "views": {
+      "seraphExplorer": [
+        {
+          "id": "seraphJobs",
+          "name": "Jobs",
+          "when": "true"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "seraphExplorer",
+          "title": "Seraph Manager",
+          "icon": "$(server)"
+        }
+      ]
+    },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "seraph.viewJobLog",
+          "when": "view == seraphJobs && viewItem == runningJob",
+          "group": "inline"
+        },
+        {
+          "command": "seraph.cancelJob",
+          "when": "view == seraphJobs && viewItem == runningJob",
+          "group": "actions"
+        },
+        {
+          "command": "seraph.copyJobId",
+          "when": "view == seraphJobs && viewItem == runningJob",
+          "group": "actions"
+        },
+        {
+          "command": "seraph.viewJobLog",
+          "when": "view == seraphJobs && viewItem == completedJob",
+          "group": "inline"
+        },
+        {
+          "command": "seraph.copyJobId",
+          "when": "view == seraphJobs && viewItem == completedJob",
+          "group": "actions"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "seraph.refreshJobs",
+          "when": "view == seraphJobs",
+          "group": "navigation"
+        },
+        {
+          "command": "seraph.submitJob",
+          "when": "view == seraphJobs",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Seraph Manager",
+      "properties": {
+        "seraph.host": {
+          "type": "string",
+          "default": "",
+          "description": "SSH host address"
+        },
+        "seraph.port": {
+          "type": "number",
+          "default": 22,
+          "description": "SSH port"
+        },
+        "seraph.username": {
+          "type": "string",
+          "default": "",
+          "description": "SSH username"
+        },
+        "seraph.remotePath": {
+          "type": "string",
+          "default": "",
+          "description": "Remote working directory path"
+        },
+        "seraph.privateKeyPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to SSH private key file (optional)"
+        },
+        "seraph.autoReconnect": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically reconnect when connection is lost"
+        },
+        "seraph.selectedGPU": {
+          "type": "string",
+          "default": "",
+          "description": "Currently selected GPU node for job submission"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "node-ssh": "^13.0.0",
+    "ssh2-sftp-client": "^9.1.0",
+    "glob": "^8.1.0",
+    "minimatch": "^5.1.0"
+  }
+}
