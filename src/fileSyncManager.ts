@@ -28,6 +28,7 @@ export class FileSyncManager {
     private sftp: any;
     private _onSyncProgress: vscode.EventEmitter<SyncProgress> = new vscode.EventEmitter<SyncProgress>();
     public readonly onSyncProgress: vscode.Event<SyncProgress> = this._onSyncProgress.event;
+    private cachedPassword: string | null = null;
 
     private defaultExcludePatterns = [
         'node_modules/**',
@@ -117,14 +118,26 @@ export class FileSyncManager {
 
         if (privateKeyPath && fs.existsSync(privateKeyPath)) {
             connectionConfig.privateKey = fs.readFileSync(privateKeyPath);
+            console.log(`SFTP using private key: ${privateKeyPath}`);
         } else {
-            const password = await vscode.window.showInputBox({
-                prompt: 'Enter SSH password for file sync',
-                password: true
-            });
+            console.log('No private key found for SFTP, requesting password');
+            
+            // Use cached password if available
+            let password = this.cachedPassword;
             
             if (!password) {
-                throw new Error('Password required for file sync');
+                const inputPassword = await vscode.window.showInputBox({
+                    prompt: 'Enter SSH password for file sync (will be cached for this session)',
+                    password: true
+                });
+                
+                if (!inputPassword) {
+                    throw new Error('Password required for file sync');
+                }
+                
+                password = inputPassword;
+                // Cache password for this session
+                this.cachedPassword = password;
             }
             
             connectionConfig.password = password;

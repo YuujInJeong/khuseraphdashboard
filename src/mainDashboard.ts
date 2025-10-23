@@ -675,11 +675,42 @@ export class MainDashboard {
                     <div class="card-header">
                         <h3 class="card-title">Quick Actions</h3>
                     </div>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <button class="btn" onclick="switchTab('gpu')">View GPU Dashboard</button>
-                        <button class="btn" onclick="submitJob()">Submit New Job</button>
-                        <button class="btn" onclick="switchTab('sync')">Sync Files</button>
-                        <button class="btn" onclick="switchTab('datasets')">Manage Datasets</button>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <!-- 개발 환경 설정 -->
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <button class="btn" onclick="setupDevEnvironment()">🔧 Setup Environment</button>
+                            <small style="color: var(--vscode-descriptionForeground); font-size: 11px;">Python 개발 환경을 자동으로 설정합니다</small>
+                        </div>
+                        
+                        <!-- 라이브러리 관리 -->
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <button class="btn" onclick="viewLibraries()">📦 Manage Libraries</button>
+                            <small style="color: var(--vscode-descriptionForeground); font-size: 11px;">Python 라이브러리를 설치하고 관리합니다</small>
+                        </div>
+                        
+                        <!-- GPU 모니터링 -->
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <button class="btn" onclick="switchTab('gpu')">🖥️ GPU Monitor</button>
+                            <small style="color: var(--vscode-descriptionForeground); font-size: 11px;">실시간 GPU 사용량과 노드 상태를 확인합니다</small>
+                        </div>
+                        
+                        <!-- 작업 제출 -->
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <button class="btn" onclick="submitJob()">🚀 Submit Job</button>
+                            <small style="color: var(--vscode-descriptionForeground); font-size: 11px;">SLURM 작업을 제출하여 GPU에서 모델을 실행합니다</small>
+                        </div>
+                        
+                        <!-- 파일 동기화 -->
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <button class="btn" onclick="switchTab('sync')">🔄 Sync Files</button>
+                            <small style="color: var(--vscode-descriptionForeground); font-size: 11px;">로컬 파일과 서버 파일을 동기화합니다</small>
+                        </div>
+                        
+                        <!-- 데이터셋 관리 -->
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <button class="btn" onclick="switchTab('datasets')">📊 Manage Datasets</button>
+                            <small style="color: var(--vscode-descriptionForeground); font-size: 11px;">데이터셋을 업로드하고 GPU 노드에 압축 해제합니다</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -977,6 +1008,16 @@ export class MainDashboard {
             vscode.postMessage({ type: 'refreshDatasets' });
         }
 
+        // Libraries
+        function viewLibraries() {
+            vscode.postMessage({ type: 'viewLibraries' });
+        }
+
+        // Development Environment
+        function setupDevEnvironment() {
+            vscode.postMessage({ type: 'setupDevEnvironment' });
+        }
+
         // Utility
         function refreshAll() {
             if (!isConnected) return;
@@ -1027,6 +1068,12 @@ export class MainDashboard {
                     break;
                 case 'error':
                     showError(message.section, message.message);
+                    break;
+                case 'viewLibraries':
+                    vscode.commands.executeCommand('seraph.viewInstalledLibraries');
+                    break;
+                case 'setupDevEnvironment':
+                    vscode.commands.executeCommand('seraph.setupDevEnvironment');
                     break;
             }
         });
@@ -1206,11 +1253,14 @@ export class MainDashboard {
                 partition: jobData.partition,
                 timeLimit: jobData.timeLimit,
                 scriptPath: `${remotePath}/${jobData.jobName}.sh`,
-                outputPath: `${remotePath}/${jobData.jobName}.out`,
-                errorPath: `${remotePath}/${jobData.jobName}.err`,
+                outputPath: `${remotePath}/logs/slurm-%A_${jobData.jobName}.out`,
+                errorPath: `${remotePath}/logs/slurm-%A_${jobData.jobName}.err`,
                 pythonScript: jobData.pythonScript,
                 condaEnv: jobData.condaEnv
             };
+
+            // Submit job using jobManager
+            await this.jobManager.submitJob(jobConfig);
 
             this.panel?.webview.postMessage({
                 type: 'jobSubmitted',

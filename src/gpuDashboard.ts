@@ -64,6 +64,9 @@ export class GPUDashboard {
                 await config.update('selectedGPU', message.node, vscode.ConfigurationTarget.Workspace);
                 vscode.window.showInformationMessage(`Selected GPU node: ${message.node}`);
                 break;
+            case 'connectToGPU':
+                await this.gpuManager.connectToGPUNode(message.node);
+                break;
         }
     }
 
@@ -385,6 +388,11 @@ export class GPUDashboard {
                             <div class="gpu-name">\${node.name}</div>
                             <div class="gpu-availability">\${availabilityText}</div>
                         </div>
+                        <div style="margin-bottom: 10px;">
+                            <button class="btn" onclick="event.stopPropagation(); connectToGPU('\${node.name}')" style="font-size: 12px; padding: 4px 8px;">
+                                🔗 Connect to \${node.name}
+                            </button>
+                        </div>
                         <div class="gpu-status">
                             <div class="gpu-status-label">GPU Status</div>
                             <div class="gpu-bar">
@@ -450,6 +458,10 @@ export class GPUDashboard {
                 card.classList.remove('selected');
             });
             event.target.closest('.gpu-card').classList.add('selected');
+        }
+
+        function connectToGPU(nodeName) {
+            vscode.postMessage({ type: 'connectToGPU', node: nodeName });
         }
 
         function showError(message) {

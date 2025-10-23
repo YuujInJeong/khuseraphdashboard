@@ -14,6 +14,7 @@ export class SSHManager {
     private _status: ConnectionStatus = ConnectionStatus.NotConnected;
     private _onStatusChanged: vscode.EventEmitter<ConnectionStatus> = new vscode.EventEmitter<ConnectionStatus>();
     public readonly onStatusChanged: vscode.Event<ConnectionStatus> = this._onStatusChanged.event;
+    private cachedPassword: string | null = null;
 
     constructor() {
         this.ssh = new NodeSSH();
@@ -50,16 +51,28 @@ export class SSHManager {
             };
 
             if (privateKeyPath && fs.existsSync(privateKeyPath)) {
-                connectionConfig.privateKeyPath = privateKeyPath;
+                connectionConfig.privateKey = fs.readFileSync(privateKeyPath);
+                console.log(`Using private key: ${privateKeyPath}`);
             } else {
-                const password = await vscode.window.showInputBox({
-                    prompt: 'Enter SSH password',
-                    password: true
-                });
+                console.log('No private key found, requesting password');
+                
+                // Use cached password if available
+                let password = this.cachedPassword;
                 
                 if (!password) {
-                    this.setStatus(ConnectionStatus.NotConnected);
-                    return false;
+                    const inputPassword = await vscode.window.showInputBox({
+                        prompt: 'Enter SSH password (will be cached for this session)',
+                        password: true
+                    });
+                    
+                    if (!inputPassword) {
+                        this.setStatus(ConnectionStatus.NotConnected);
+                        return false;
+                    }
+                    
+                    password = inputPassword;
+                    // Cache password for this session
+                    this.cachedPassword = password;
                 }
                 
                 connectionConfig.password = password;
@@ -80,6 +93,8 @@ export class SSHManager {
         if (this.ssh.isConnected()) {
             this.ssh.dispose();
         }
+        // Clear cached password for security
+        this.cachedPassword = null;
         this.setStatus(ConnectionStatus.NotConnected);
     }
 

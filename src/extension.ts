@@ -10,6 +10,9 @@ import { FileSyncManager } from './fileSyncManager';
 import { SyncUI } from './syncUI';
 import { DatasetManager } from './datasetManager';
 import { MainDashboard } from './mainDashboard';
+import { FileExplorer } from './fileExplorer';
+import { LibraryManager } from './libraryManager';
+import { DevEnvironmentManager } from './devEnvironmentManager';
 
 let sshManager: SSHManager;
 let statusBarManager: StatusBarManager;
@@ -22,6 +25,9 @@ let fileSyncManager: FileSyncManager;
 let syncUI: SyncUI;
 let datasetManager: DatasetManager;
 let mainDashboard: MainDashboard;
+let fileExplorer: FileExplorer;
+let libraryManager: LibraryManager;
+let devEnvironmentManager: DevEnvironmentManager;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Seraph Manager activated');
@@ -38,6 +44,9 @@ export function activate(context: vscode.ExtensionContext) {
     syncUI = new SyncUI(fileSyncManager, sshManager);
     datasetManager = new DatasetManager(sshManager);
     mainDashboard = new MainDashboard(context, sshManager, gpuManager, jobManager, fileSyncManager, datasetManager);
+    fileExplorer = new FileExplorer(context, sshManager);
+    libraryManager = new LibraryManager(context, sshManager);
+    devEnvironmentManager = new DevEnvironmentManager(context, sshManager);
     
     // Register TreeView
     vscode.window.createTreeView('seraphJobs', {
@@ -123,6 +132,40 @@ export function activate(context: vscode.ExtensionContext) {
         await datasetManager.showDatasetDashboard();
     });
     
+    // File explorer command
+    const showFileExplorerDisposable = vscode.commands.registerCommand('seraph.showFileExplorer', () => {
+        fileExplorer.show();
+    });
+    
+    // Open remote folder command
+    const openRemoteFolderDisposable = vscode.commands.registerCommand('seraph.openRemoteFolder', async () => {
+        if (!sshManager.isConnected()) {
+            vscode.window.showErrorMessage('Please connect to server first');
+            return;
+        }
+        
+        const config = vscode.workspace.getConfiguration('seraph');
+        const remotePath = config.get<string>('remotePath', '');
+        
+        if (!remotePath) {
+            vscode.window.showErrorMessage('Please configure remote path first');
+            return;
+        }
+        
+        // Open remote folder in new VSCode window
+        vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.parse(`ssh-remote+${config.get<string>('host')}${remotePath}`));
+    });
+    
+    // View installed libraries command
+    const viewLibrariesDisposable = vscode.commands.registerCommand('seraph.viewInstalledLibraries', () => {
+        libraryManager.show();
+    });
+    
+    // Setup development environment command
+    const setupDevEnvironmentDisposable = vscode.commands.registerCommand('seraph.setupDevEnvironment', () => {
+        devEnvironmentManager.show();
+    });
+    
     // Start auto-refresh for jobs when connected
     sshManager.onStatusChanged(status => {
         if (status === 'Connected') {
@@ -148,6 +191,10 @@ export function activate(context: vscode.ExtensionContext) {
         syncRemoteToLocalDisposable,
         syncBothWaysDisposable,
         manageDatasetDisposable,
+        showFileExplorerDisposable,
+        openRemoteFolderDisposable,
+        viewLibrariesDisposable,
+        setupDevEnvironmentDisposable,
         statusBarManager
     );
     

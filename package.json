@@ -101,6 +101,36 @@
         "command": "seraph.manageDatasets",
         "title": "Manage Datasets",
         "category": "Seraph"
+      },
+      {
+        "command": "seraph.showFileExplorer",
+        "title": "Show File Explorer",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.openRemoteFolder",
+        "title": "Open Remote Folder",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.viewInstalledLibraries",
+        "title": "View Installed Libraries",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.setupDevEnvironment",
+        "title": "Setup Development Environment",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.createProjectTemplate",
+        "title": "Create Project Template",
+        "category": "Seraph"
+      },
+      {
+        "command": "seraph.resourceUsageDashboard",
+        "title": "Resource Usage Dashboard",
+        "category": "Seraph"
       }
     ],
     "views": {
@@ -167,22 +197,22 @@
       "properties": {
         "seraph.host": {
           "type": "string",
-          "default": "",
-          "description": "SSH host address"
+          "default": "163.180.160.105",
+          "description": "SSH host address (Seraph server)"
         },
         "seraph.port": {
           "type": "number",
-          "default": 22,
-          "description": "SSH port"
+          "default": 30080,
+          "description": "SSH port (30080 for external access, 22 for internal)"
         },
         "seraph.username": {
           "type": "string",
-          "default": "",
-          "description": "SSH username"
+          "default": "guswns0429",
+          "description": "SSH username (your KHU account)"
         },
         "seraph.remotePath": {
           "type": "string",
-          "default": "",
+          "default": "/data/guswns0429/repos",
           "description": "Remote working directory path"
         },
         "seraph.privateKeyPath": {

@@ -14,6 +14,8 @@ export interface JobConfig {
     scriptPath: string;
     outputPath?: string;
     errorPath?: string;
+    pythonScript?: string;
+    condaEnv?: string;
 }
 
 export interface JobInfo {
@@ -38,15 +40,17 @@ export class JobManager {
 
     constructor(private sshManager: SSHManager) {}
 
-    async submitJob(): Promise<void> {
+    async submitJob(jobConfig?: JobConfig): Promise<void> {
         if (!this.sshManager.isConnected()) {
             vscode.window.showErrorMessage('Not connected to server');
             return;
         }
 
-        const jobConfig = await this.getJobConfiguration();
         if (!jobConfig) {
-            return;
+            jobConfig = await this.getJobConfiguration();
+            if (!jobConfig) {
+                return;
+            }
         }
 
         try {
@@ -151,32 +155,29 @@ export class JobManager {
     }
 
     private generateScriptContent(config: JobConfig): string {
-        return `#!/bin/bash
-#SBATCH --job-name=${config.name}
-#SBATCH --output=${config.outputPath}
-#SBATCH --error=${config.errorPath}
-#SBATCH --partition=${config.partition}
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
+        return `#!/usr/bin/bash
+#SBATCH -J ${config.name}
 #SBATCH --gres=gpu:${config.gpuCount}
-#SBATCH --cpus-per-task=${config.cpuPerGpu * config.gpuCount}
-#SBATCH --mem=${parseInt(config.memoryPerGpu) * config.gpuCount}G
-#SBATCH --time=${config.timeLimit}
-${config.gpuNode ? `#SBATCH --nodelist=${config.gpuNode}` : ''}
+#SBATCH --cpus-per-gpu=${config.cpuPerGpu}
+#SBATCH --mem-per-gpu=${config.memoryPerGpu}
+#SBATCH -p ${config.partition}
+${config.gpuNode ? `#SBATCH -w ${config.gpuNode}` : ''}
+#SBATCH -t ${config.timeLimit}
+#SBATCH -o ${config.outputPath}
+#SBATCH -e ${config.errorPath}
 
 # Job information
-echo "Job started at: $(date)"
-echo "Running on node: $(hostname)"
-echo "CUDA devices: $CUDA_VISIBLE_DEVICES"
+pwd
+which python
+hostname
 
-# Activate conda environment (modify as needed)
-# source ~/miniconda3/etc/profile.d/conda.sh
-# conda activate your-env
+# Activate conda environment if specified
+${config.condaEnv ? `conda activate ${config.condaEnv}` : ''}
 
 # Run the Python script
-python ${config.scriptPath}
+python3 ${config.pythonScript}
 
-echo "Job completed at: $(date)"
+exit 0
 `;
     }
 
